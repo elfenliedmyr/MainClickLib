@@ -12,7 +12,7 @@ void sleep(int ms, int mode) {
 
 }
 
-
+//for test commit
 
 void getmouse(int& x, int& y) {
     POINT pt;
