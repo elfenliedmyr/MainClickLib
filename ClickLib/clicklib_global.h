@@ -1,0 +1,12 @@
+#ifndef CLICKLIB_GLOBAL_H
+#define CLICKLIB_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(CLICKLIB_LIBRARY)
+#  define CLICKLIBSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define CLICKLIBSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // CLICKLIB_GLOBAL_H
