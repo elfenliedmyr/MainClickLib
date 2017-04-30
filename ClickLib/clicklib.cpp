@@ -1,4 +1,5 @@
 #include "clicklib.h"
+#include <QDesktopWidget>
 
 void start() {
     st = new SystemTrey();
@@ -33,8 +34,14 @@ int getmouseY() {
     return pt.y;
 }
 
-  void mousemove(int x, int y, int time) {
-    mouse_event(MOUSEEVENTF_MOVE /*| MOUSEEVENTF_ABSOLUTE*/,x,y,0,time);
+void mousemove(int x, int y, int time) {
+  int width= QApplication::desktop()->width();
+  int height= QApplication::desktop()->height();
+  qDebug() <<"width=" <<width <<"|height=" <<height;
+  y = y * (65535 / height);
+  x = x * (65535 / width);
+  qDebug() <<"x=" <<x <<"y=" <<y;
+  mouse_event(MOUSEEVENTF_MOVE| MOUSEEVENTF_ABSOLUTE,x,y,0,time);
 }
 
 

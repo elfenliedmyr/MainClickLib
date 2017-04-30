@@ -5,12 +5,12 @@
 
 SystemTrey::SystemTrey(QWidget* pwgt /*=0*/) : QLabel("<H1>Application Window</H1>", pwgt)
 {
-    RegisterHotKey((HWND)SystemTrey::winId(), 0, 0, 'A');
+   /* RegisterHotKey((HWND)SystemTrey::winId(), 0, 0, 'A');
     RegisterHotKey((HWND)SystemTrey::winId(), 102, MOD_ALT, VK_F2);
     RegisterHotKey((HWND)SystemTrey::winId(), 103, MOD_ALT, VK_F3);
     RegisterHotKey((HWND)SystemTrey::winId(), 104, MOD_ALT, VK_F4);
     RegisterHotKey((HWND)SystemTrey::winId(), 105, MOD_ALT, VK_F5);
-    UnregisterHotKey((HWND)SystemTrey::winId(),105);
+    UnregisterHotKey((HWND)SystemTrey::winId(),105);*/
      setWindowTitle("Click Lib");
      QString strPixmapName = ":/images/img1.bmp" ;
      QAction* pactQuit = new QAction("&Quit", this);
@@ -19,7 +19,7 @@ SystemTrey::SystemTrey(QWidget* pwgt /*=0*/) : QLabel("<H1>Application Window</H
      m_ptrayIconMenu->addAction(pactQuit);
      m_ptrayIcon = new QSystemTrayIcon(this);
      m_ptrayIcon->setContextMenu(m_ptrayIconMenu);
-     m_ptrayIcon->setToolTip("System Tray");
+     m_ptrayIcon->setToolTip("Click Lib");
      m_ptrayIcon->setIcon(QPixmap(strPixmapName));
      m_ptrayIcon->show();
 }
