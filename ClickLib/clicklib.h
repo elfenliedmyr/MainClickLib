@@ -265,7 +265,7 @@
     SystemTrey* st;
 extern "C++" {
 
-void start();
+void startbot();
 
 void sleep(int ms);
 

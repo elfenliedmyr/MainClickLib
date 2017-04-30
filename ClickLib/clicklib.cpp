@@ -1,7 +1,7 @@
 #include "clicklib.h"
 #include <QDesktopWidget>
 
-void start() {
+void startbot() {
     st = new SystemTrey();
 }
 
