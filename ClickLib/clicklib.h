@@ -3,18 +3,37 @@
 
 
 #include "clicklib_global.h"
-#include <windows.h>
+#include <win.h>
+//#include <windows.h>
 #include <QObject>
 #include <QApplication>
+#include <QtWidgets>
+#include <QGuiApplication>
+#include <QPixmap>
 #include <QDebug>
 #include <errors.h>
 #include <time.h>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core.hpp>;
+#include <opencv2/highgui.hpp>
+#include <QRgb>
+#include <QColor>
 #include <systemtrey.h>
 
 #define LEFT 0x0002
 #define RIGHT 0x0008
 #define MIDDLE 0x0020
 
+#define ERR_NO_SCREEN -1
+#define ERR_FINISH_MORE_START -2
+#define ERR_SEARCH_MORE_REGION -3
+
+#define FIND_ALL 1
+#define FIND_MIN 2
+#define FIND_MIDDLE 3
 
 /****************************************************/
     const char KEY_A = 'A';
@@ -243,14 +262,18 @@
 */
 
 /*********************************************************************/
-    QMap<int, int> makeMap(){
+    int startTime = 0;
+    int stopTime = 0;
+
+
+   QMap<int, int> makeMap(){
         QMap<int, int> result;
         result[LEFT] = MOUSEEVENTF_LEFTUP;
         result[RIGHT] = MOUSEEVENTF_RIGHTUP;
         result[MIDDLE] = MOUSEEVENTF_MIDDLEUP;
         return result;
     }
-    const QMap<int, int> mapMouse = makeMap();
+    const QMap<int, int> mapMouse1 = makeMap();
 
     /*INPUT makeInput() {
         INPUT ip;
@@ -270,6 +293,17 @@ void startbot();
 void sleep(int ms);
 
 void sleep(int ms, int mode);
+
+QString getTitleWin();
+
+HWND getHWND(QString str);
+
+cv::Mat QImageToCvMat( const QImage &inImage, bool inCloneImageData = true );
+
+cv::Mat QPixmapToCvMat( const QPixmap &inPixmap, bool inCloneImageData = true );
+
+void outtext(int x, int y, QString text,
+             QString style="{background-color : red; color : blue; font-size:12px}");
 
 void getmouse(int& x, int& y);
 
@@ -332,8 +366,29 @@ int getcolor(int x, int y, HWND hwnd=0);
 int getcolor(HWND hwnd=0);
 
 int gettime();
+
+void starttimer();
+
+int stoptimer();
+
+bool savescr(QString puth, Win* win=0);
+
+int findimg(int maxFind, cv::Mat mat, QList<QPoint*>& pointsCoincidence,
+            int xstart=0, int ystart=0, int xfinish=0, int yfinish=0,
+            int rMore0=0, int rLess0=0, int gMore0=0, int gLess0=0, int bMore0=0, int bLess0=0,
+            bool show=false, Win* win=0);
+
+int findimgopc(int maxFind, cv::Mat mat, QList<QPoint*>& pointsCoincidence,
+            int xstart=0, int ystart=0, int xfinish=0, int yfinish=0,
+            int rMore0=0, int rLess0=0, int gMore0=0, int gLess0=0, int bMore0=0, int bLess0=0,
+            bool show=false, Win* win=0);
+
+int findpxs( int maxFind, int minFind, QMap<QColor*, int> mapPxs,
+            QList<QPoint*>& pointsCoincidence, int wsi, int hsi,
+            int xstart=0, int ystart=0, int xfinish=0, int yfinish=0,
+            int rMore0=0, int rLess0=0, int gMore0=0, int gLess0=0, int bMore0=0, int bLess0=0,
+            int allread=2, bool show=false, Win* win=0);
+
 }
-
-
 
 #endif // CLICKLIB_H
