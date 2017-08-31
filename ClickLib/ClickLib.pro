@@ -11,7 +11,7 @@ TEMPLATE = lib
 
 DEFINES += CLICKLIB_LIBRARY
 
-VERSION = 1.2
+VERSION = 1.21
 DEFINES += VERSION=\\\"$$VERSION\\\"
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
