@@ -313,6 +313,10 @@ int getmouseY();
 
 void mousemove(int x, int y, int time=0) ;
 
+void mouseclick1(int cl, int time=20);
+
+void mousecl(int cl, int time=20);
+
 void mouse(int cl, int x=0, int y=0,int time=20);
 
 void mousedown(uint cl);
@@ -384,6 +388,12 @@ int findimgopc(int maxFind, cv::Mat mat, QList<QPoint*>& pointsCoincidence,
             bool show=false, Win* win=0);
 
 int findpxs( int maxFind, int minFind, QMap<QColor*, int> mapPxs,
+            QList<QPoint*>& pointsCoincidence, int wsi, int hsi,
+            int xstart=0, int ystart=0, int xfinish=0, int yfinish=0,
+            int rMore0=0, int rLess0=0, int gMore0=0, int gLess0=0, int bMore0=0, int bLess0=0,
+            int allread=2, bool show=false, Win* win=0);
+
+int findpxs2( int maxFind, int minFind, QMap<QColor*, int> mapPxs,
             QList<QPoint*>& pointsCoincidence, int wsi, int hsi,
             int xstart=0, int ystart=0, int xfinish=0, int yfinish=0,
             int rMore0=0, int rLess0=0, int gMore0=0, int gLess0=0, int bMore0=0, int bLess0=0,
