@@ -399,6 +399,21 @@ int findpxs2( int maxFind, int minFind, QMap<QColor*, int> mapPxs,
             int rMore0=0, int rLess0=0, int gMore0=0, int gLess0=0, int bMore0=0, int bLess0=0,
             int allread=2, bool show=false, Win* win=0);
 
+int findpxs3( int maxFind, int minFind, QMap<QColor*, int> mapPxs,
+            QList<QPoint*>& pointsCoincidence, int wsi, int hsi,
+            int xnostart, int ynostart, int xnofinish, int ynofinish,
+            int xstart=0, int ystart=0, int xfinish=0, int yfinish=0,
+            int rMore0=0, int rLess0=0, int gMore0=0, int gLess0=0, int bMore0=0, int bLess0=0,
+            int allread=2, bool show=false, Win* win=0);
+
+int findpxs4( int maxFind, int minFind, QMap<QColor*, int> mapPxs,
+            QList<QPoint*>& pointsCoincidence, int wsi, int hsi,
+            QMap<QPoint*, QPoint*> mapNoSearch,
+            int xstart=0, int ystart=0, int xfinish=0, int yfinish=0,
+            int rMore0=0, int rLess0=0, int gMore0=0, int gLess0=0, int bMore0=0, int bLess0=0,
+            int allread=2, bool show=false, Win* win=0);
+
+
 }
 
 #endif // CLICKLIB_H

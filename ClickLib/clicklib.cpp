@@ -837,6 +837,507 @@ int findpxs2(int maxFind, int minFind, QMap<QColor *, int> mapPxs,
    }
 }
 
+int findpxs3(int maxFind, int minFind, QMap<QColor *, int> mapPxs,
+            QList<QPoint *>& pointsCoincidence, int wsi, int hsi,
+            int xnostart, int ynostart, int xnofinish, int ynofinish,
+            int xstart, int ystart, int xfinish, int yfinish,
+            int rMore0, int rLess0, int gMore0, int gLess0, int bMore0, int bLess0,
+            int allread, bool show,  Win* win)
+{
+
+    //верный вариант 2
+   bool coincidence = false;
+   int sumSearchPxls = 0;
+   foreach (int val, mapPxs.values()) {
+       sumSearchPxls += val;
+    }
+   QScreen *screen = QGuiApplication::primaryScreen();
+   int stepfind = 1;
+   int stepnofind = 1;
+   HWND hwnd = 0;
+   if(win==0) {
+       win = new Win(GetDesktopWindow());
+       hwnd = win->hwnd;
+   } else {
+        hwnd = win->hwnd;
+        //пока что уберем
+       /*if(win->hwndChild!=0) {
+            hwnd = win->hwndChild;
+       } else if(win->hwnd != 0){
+            hwnd = win->hwnd;
+       } else {
+            return -3;
+       }*/
+   }
+   WId wid = (WId)hwnd;
+   if (screen)
+   {
+           QPixmap ss = screen->grabWindow(wid);
+           cv::Mat mat = QPixmapToCvMat(ss);
+
+           QPoint* luckyStart = 0;
+           int Sfindcolor = 0;
+
+           int Sfull = wsi*hsi;
+           int Sfind = 0;
+           int Snofind = 0;
+           int Smaxfind = Sfull - minFind;
+           int xstep  = 1;
+           int sumSearchPxls = 0;
+           foreach (int val, mapPxs.values()) {
+                sumSearchPxls += val;
+           }
+
+           cv::Mat3b src= mat;
+           QMapIterator<QColor*, int> i(mapPxs);
+           QList<int> numsPxs;
+           //QStringList listDebug;
+
+           if(allread==FIND_ALL) {
+               stepfind =1;
+               stepnofind =1;
+           } else if(allread == FIND_MIN) {
+               stepfind = wsi;
+               stepnofind = wsi;
+           } else {
+               stepfind = wsi;
+               stepnofind = 1;
+           }
+           if(xfinish==0 && yfinish==0) {
+                xfinish = mat.cols;
+                yfinish = mat.rows;
+           }
+           if(xfinish<xstart || yfinish < ystart) {
+               return -2;
+           }
+           if(wsi > mat.cols || hsi > mat.rows) {
+               return -3;
+           }
+           for(int y = ystart; y < yfinish/*src.rows*/; ++y) {
+
+               if(maxFind != 0 && maxFind < pointsCoincidence.size()) {
+                   break;
+               }
+               for(int x = xstart; x < xfinish /*src.cols*/; x=x+xstep) {
+                   if(x>=xnostart && y>=ynostart && x<=xnofinish && y<=ynofinish) {
+                        continue;
+                   }
+                   int startSearchX = x;
+                   int finishSearchX = x+wsi;
+                   int kSX = startSearchX; int kSY = y;
+
+                   //смотрим не перешагнул finishSearchX за пределы
+                   int mkey =0;
+                   i.toFront();
+                   if(numsPxs.size()>0) {
+                       numsPxs.clear();
+                   }
+                   while (i.hasNext()) {
+                       i.next();
+                       numsPxs.insert(mkey ,i.value());
+                       mkey++;
+                   }
+
+                   if(finishSearchX>src.cols) {
+                        break;
+
+                   } else  {
+                        bool allbreak = false;
+                        for(int ysi=0; ysi<hsi; ysi++) {
+                            kSX = startSearchX;
+                            if(allbreak) {
+                                allbreak=false;
+                                break;
+                            }
+                            if(coincidence) {
+                                coincidence=false;
+                                break;
+                            }
+                            kSY += ysi; //?
+                            for(int xsi=0; xsi<wsi; xsi++) {
+                                //for search img
+                                if(xsi!=0)
+                                   kSX++;
+
+                                int rMore = 0; int gMore = 0; int bMore = 0;
+                                int rLess = 0; int gLess = 0; int bLess = 0;
+
+
+                                //for main matrix
+                                cv::Vec3b pixelMM = src(kSY, kSX);
+                                int blue = pixelMM[0];
+                                int green = pixelMM[1];
+                                int red = pixelMM[2];
+                                rMore = red + rMore0; if(rMore > 255) rMore = 255;
+                                gMore = green + gMore0; if(gMore > 255) gMore = 255;
+                                bMore = blue + bMore0; if(bMore > 255) bMore = 255;
+                                rLess = red - rLess0; if(rLess < 0) rLess = 0;
+                                gLess = green - gLess0; if(gLess < 0) gLess = 0;
+                                bLess = blue - bLess0; if(bLess < 0) bLess = 0;
+
+                                mkey = 0;
+                                //Вот это вот сравнение только 1 пикселя
+                                i.toFront();
+
+                                while (i.hasNext()) {
+                                   i.next();
+                                   int blueSi = 0; int greenSi = 0; int redSi = 0;
+                                   QColor* color = (QColor*)i.key();
+                                   color->getRgb(&blueSi,&greenSi, &redSi);
+
+                                   if((blueSi>=bLess && blueSi<=bMore)
+                                       && (greenSi>=gLess && greenSi<=gMore)
+                                       && (redSi>=rLess && redSi<=rMore)  ) {
+                                      /* if(mkey<0 || mkey>=(numsPxs.size())) {
+                                           qDebug() <<"";
+                                       }*/
+                                       //QString pccc = "mkey="+QString::number(numsPxs[mkey])+"|x="+QString::number(x)+"|y="+QString::number(y);
+                                       //listDebug.append(pccc);
+                                       numsPxs[mkey] = numsPxs[mkey]-1;
+                                       if(numsPxs.at(mkey)<=0) {
+                                           mkey++;
+                                           //Вот тут вот ввести новую переменную Sfindcolor  и +1
+                                            Sfindcolor++;
+                                            Sfind++;
+                                            if(Sfind>=sumSearchPxls && Sfindcolor>=minFind/*minFind*//*атут еще 1 условие*/) { //мы узнали что нашли область
+                                                Sfind = 0; Snofind = 0; Sfindcolor = 0;
+                                                coincidence = true;
+                                                break;
+                                            }
+                                           break;
+                                       }
+                                       Sfind++;
+                                       if(Sfind>=sumSearchPxls && Sfindcolor>=minFind/*minFind*//*атут еще 1 условие*/) { //мы узнали что нашли область
+                                           Sfind = 0; Snofind = 0; Sfindcolor = 0;
+                                           coincidence = true;
+                                           break;
+                                       }
+
+                                   } else {
+                                       mkey++;
+                                       Snofind++;
+                                       if(Snofind>Smaxfind) { //Мы не нашли и превысили лимит ненахождений
+                                           allbreak=true;
+                                           Sfind = 0; Snofind = 0;
+                                           break;
+                                       }
+                                   }
+                                }
+                                //
+                                if(allbreak) {
+                                    xstep = stepfind;
+                                    break;
+                                }
+                                if(xsi==0 && ysi==0 /*|| (ysi==0 && (xsi-countFirstPxl)==0)*/) {
+                                    luckyStart = new QPoint(kSX, kSY);
+                                }
+                                if(coincidence) {
+                                    xstep = stepnofind;
+                                   pointsCoincidence.append(luckyStart);
+                                   break;
+                                }
+
+
+                            }
+                        }
+                   }
+
+               }
+           }
+
+        if(show) {
+            cv::imshow("showimg", mat);
+            HWND hwnd2 = getHWND("showimg");
+            Win win2(hwnd2);
+
+          for(QPoint* point : pointsCoincidence) {
+              int mx =point->x();
+              int my = point->y();
+              win2.toxyglobal(mx, my);
+              outtext(mx, my, "Y");
+
+          }
+        }
+        qDebug() <<"Sfindcolor="<<Sfindcolor;
+        return pointsCoincidence.size();
+
+
+
+          /* HWND hwnd2 = getHWND(titleVideo);
+             Win win2(hwnd2);
+           * for(QPoint* point : pointsCoincidence) {
+              int mx =point->x();
+              int my = point->y();
+              win2.toxyglobal(mx, my);
+              outtext(mx, my, "piska");
+
+          }*/
+
+
+   } else {
+       return -1;
+   }
+}
+
+
+int findpxs4(int maxFind, int minFind, QMap<QColor *, int> mapPxs,
+            QList<QPoint *>& pointsCoincidence, int wsi, int hsi,
+             QMap<QPoint*, QPoint*> mapNoSearch,
+            int xstart, int ystart, int xfinish, int yfinish,
+            int rMore0, int rLess0, int gMore0, int gLess0, int bMore0, int bLess0,
+            int allread, bool show,  Win* win)
+{
+
+    //верный вариант 2
+   bool coincidence = false;
+   int sumSearchPxls = 0;
+   foreach (int val, mapPxs.values()) {
+       sumSearchPxls += val;
+    }
+   QScreen *screen = QGuiApplication::primaryScreen();
+   int stepfind = 1;
+   int stepnofind = 1;
+   HWND hwnd = 0;
+   if(win==0) {
+       win = new Win(GetDesktopWindow());
+       hwnd = win->hwnd;
+   } else {
+        hwnd = win->hwnd;
+        //пока что уберем
+       /*if(win->hwndChild!=0) {
+            hwnd = win->hwndChild;
+       } else if(win->hwnd != 0){
+            hwnd = win->hwnd;
+       } else {
+            return -3;
+       }*/
+   }
+   WId wid = (WId)hwnd;
+   if (screen)
+   {
+           QPixmap ss = screen->grabWindow(wid);
+           cv::Mat mat = QPixmapToCvMat(ss);
+
+           QPoint* luckyStart = 0;
+           int Sfindcolor = 0;
+
+           int Sfull = wsi*hsi;
+           int Sfind = 0;
+           int Snofind = 0;
+           int Smaxfind = Sfull - minFind;
+           int xstep  = 1;
+           int sumSearchPxls = 0;
+           foreach (int val, mapPxs.values()) {
+                sumSearchPxls += val;
+           }
+
+           cv::Mat3b src= mat;
+           QMapIterator<QColor*, int> i(mapPxs);
+           QMapIterator<QPoint*, QPoint*> inos(mapNoSearch);
+           QList<int> numsPxs;
+           //QStringList listDebug;
+
+           if(allread==FIND_ALL) {
+               stepfind =1;
+               stepnofind =1;
+           } else if(allread == FIND_MIN) {
+               stepfind = wsi;
+               stepnofind = wsi;
+           } else {
+               stepfind = wsi;
+               stepnofind = 1;
+           }
+           if(xfinish==0 && yfinish==0) {
+                xfinish = mat.cols;
+                yfinish = mat.rows;
+           }
+           if(xfinish<xstart || yfinish < ystart) {
+               return -2;
+           }
+           if(wsi > mat.cols || hsi > mat.rows) {
+               return -3;
+           }
+           for(int y = ystart; y < yfinish/*src.rows*/; ++y) {
+
+               if(maxFind != 0 && maxFind < pointsCoincidence.size()) {
+                   break;
+               }
+               for(int x = xstart; x < xfinish /*src.cols*/; x=x+xstep) {
+                   bool isinos = false;
+                   inos.toFront();
+                   while (inos.hasNext()) {
+                       inos.next();
+                       QPoint* pointst = inos.key();
+                       QPoint* pointfin = inos.value();
+                       if(x>=pointst->x() && y>=pointst->y() &&
+                          x<=pointfin->x() && y<=pointfin->y()) {
+                           isinos = true;
+                           break;
+                       }
+                   }
+                   if(isinos) {
+                       continue;
+                   }
+                   /*if(x>=xnostart && y>=ynostart && x<=xnofinish && y<=ynofinish
+                      && xnostart>=0 && ynofinish>=0) {
+                        continue;
+                   }*/
+                   int startSearchX = x;
+                   int finishSearchX = x+wsi;
+                   int kSX = startSearchX; int kSY = y;
+
+                   //смотрим не перешагнул finishSearchX за пределы
+                   int mkey =0;
+                   i.toFront();
+                   if(numsPxs.size()>0) {
+                       numsPxs.clear();
+                   }
+                   while (i.hasNext()) {
+                       i.next();
+                       numsPxs.insert(mkey ,i.value());
+                       mkey++;
+                   }
+
+                   if(finishSearchX>src.cols) {
+                        break;
+
+                   } else  {
+                        bool allbreak = false;
+                        for(int ysi=0; ysi<hsi; ysi++) {
+                            kSX = startSearchX;
+                            if(allbreak) {
+                                allbreak=false;
+                                break;
+                            }
+                            if(coincidence) {
+                                coincidence=false;
+                                break;
+                            }
+                            kSY += ysi; //?
+                            for(int xsi=0; xsi<wsi; xsi++) {
+                                //for search img
+                                if(xsi!=0)
+                                   kSX++;
+
+                                int rMore = 0; int gMore = 0; int bMore = 0;
+                                int rLess = 0; int gLess = 0; int bLess = 0;
+
+
+                                //for main matrix
+                                cv::Vec3b pixelMM = src(kSY, kSX);
+                                int blue = pixelMM[0];
+                                int green = pixelMM[1];
+                                int red = pixelMM[2];
+                                rMore = red + rMore0; if(rMore > 255) rMore = 255;
+                                gMore = green + gMore0; if(gMore > 255) gMore = 255;
+                                bMore = blue + bMore0; if(bMore > 255) bMore = 255;
+                                rLess = red - rLess0; if(rLess < 0) rLess = 0;
+                                gLess = green - gLess0; if(gLess < 0) gLess = 0;
+                                bLess = blue - bLess0; if(bLess < 0) bLess = 0;
+
+                                mkey = 0;
+                                //Вот это вот сравнение только 1 пикселя
+                                i.toFront();
+
+                                while (i.hasNext()) {
+                                   i.next();
+                                   int blueSi = 0; int greenSi = 0; int redSi = 0;
+                                   QColor* color = (QColor*)i.key();
+                                   color->getRgb(&blueSi,&greenSi, &redSi);
+
+                                   if((blueSi>=bLess && blueSi<=bMore)
+                                       && (greenSi>=gLess && greenSi<=gMore)
+                                       && (redSi>=rLess && redSi<=rMore)  ) {
+                                      /* if(mkey<0 || mkey>=(numsPxs.size())) {
+                                           qDebug() <<"";
+                                       }*/
+                                       //QString pccc = "mkey="+QString::number(numsPxs[mkey])+"|x="+QString::number(x)+"|y="+QString::number(y);
+                                       //listDebug.append(pccc);
+                                       numsPxs[mkey] = numsPxs[mkey]-1;
+                                       if(numsPxs.at(mkey)<=0) {
+                                           mkey++;
+                                           //Вот тут вот ввести новую переменную Sfindcolor  и +1
+                                            Sfindcolor++;
+                                            Sfind++;
+                                            if(Sfind>=sumSearchPxls && Sfindcolor>=minFind/*minFind*//*атут еще 1 условие*/) { //мы узнали что нашли область
+                                                Sfind = 0; Snofind = 0; Sfindcolor = 0;
+                                                coincidence = true;
+                                                break;
+                                            }
+                                           break;
+                                       }
+                                       Sfind++;
+                                       if(Sfind>=sumSearchPxls && Sfindcolor>=minFind/*minFind*//*атут еще 1 условие*/) { //мы узнали что нашли область
+                                           Sfind = 0; Snofind = 0; Sfindcolor = 0;
+                                           coincidence = true;
+                                           break;
+                                       }
+
+                                   } else {
+                                       mkey++;
+                                       Snofind++;
+                                       if(Snofind>Smaxfind) { //Мы не нашли и превысили лимит ненахождений
+                                           allbreak=true;
+                                           Sfind = 0; Snofind = 0;
+                                           break;
+                                       }
+                                   }
+                                }
+                                //
+                                if(allbreak) {
+                                    xstep = stepfind;
+                                    break;
+                                }
+                                if(xsi==0 && ysi==0 /*|| (ysi==0 && (xsi-countFirstPxl)==0)*/) {
+                                    luckyStart = new QPoint(kSX, kSY);
+                                }
+                                if(coincidence) {
+                                    xstep = stepnofind;
+                                   pointsCoincidence.append(luckyStart);
+                                   break;
+                                }
+
+
+                            }
+                        }
+                   }
+
+               }
+           }
+
+        if(show) {
+            cv::imshow("showimg", mat);
+            HWND hwnd2 = getHWND("showimg");
+            Win win2(hwnd2);
+
+          for(QPoint* point : pointsCoincidence) {
+              int mx =point->x();
+              int my = point->y();
+              win2.toxyglobal(mx, my);
+              outtext(mx, my, "Y");
+
+          }
+        }
+        qDebug() <<"Sfindcolor="<<Sfindcolor;
+        return pointsCoincidence.size();
+
+
+
+          /* HWND hwnd2 = getHWND(titleVideo);
+             Win win2(hwnd2);
+           * for(QPoint* point : pointsCoincidence) {
+              int mx =point->x();
+              int my = point->y();
+              win2.toxyglobal(mx, my);
+              outtext(mx, my, "piska");
+
+          }*/
+
+
+   } else {
+       return -1;
+   }
+}
 
 int findimg(int maxFind, cv::Mat image, QList<QPoint *> &pointsCoincidence,
             int xstart, int ystart, int xfinish, int yfinish,
